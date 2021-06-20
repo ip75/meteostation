@@ -1,0 +1,35 @@
+version "3.9"
+
+services:
+  meteostation:
+    container_name: meteostation
+    image: meteostation:latest
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - 5432:5432
+      - 80:50000
+    environment:
+      POSTGRES_DB:meteostation
+      POSTGRES_USER:meteostation
+      POSTGRES_PASSWORD:meteostation
+      PGDATA:/postgresql/data
+    volumes:
+      - /postgresql/data:/data/postgres
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379"
+    volumes:
+      - /data:/data/redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    
+networks:
+  default:
+    name: meteostation-net

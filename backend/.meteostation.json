@@ -1,0 +1,19 @@
+{
+    "general": {
+        "log_level": 1,
+        "log_to_syslog": false
+    },
+
+    "postgresql": {
+        "dsn" : "pgsql:host=localhost;port=5432;dbname=meteostation;user=meteostation;password=7c02fca668ca68a9e6fcaf72c164b9d9",
+        "max_open_connections" : 1000,
+        "max_idle_connections" : 2000
+    },
+
+    "redis": {
+        "url" : "redis",
+        "password" : "7c02fca668ca68a9e6fcaf72c164b9d9",
+        "database" : 0,
+        "queue" : "meteostation:bmp280"
+    }
+}
