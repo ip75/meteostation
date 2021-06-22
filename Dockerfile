@@ -2,26 +2,32 @@
 FROM golang:latest AS develop
 ENV PROJECT_PATH=/meteostation
 
-# build backend
-# build frontend
-# copy result to target directory
-
 RUN mkdir -p $PROJECT_PATH
 COPY . $PROJECT_PATH
+
+# build backend
+WORKDIR $PROJECT_PATH/backend
+RUN go build
+
+# build frontend
+WORKDIR $PROJECT_PATH/ui/meteostation
+RUN apt-get update && \
+    apt-get install yarn && \
+    yarn && \
+    yarn build
+
 WORKDIR $PROJECT_PATH
-#RUN make
 
+FROM postgres:latest AS production
 
-FROM postgres:latest AS production 
+# copy result to target directory
+RUN apk --no-cache add ca-certificates
+COPY --from=develop $PROJECT_PATH/backend/meteostation /usr/bin/meteostation
+COPY --from=develop $PROJECT_PATH/backend/.meteostation.json /etc/.meteostation.json
+COPY --from=develop $PROJECT_PATH/ui/meteostation/dist /www/static
 
-
-
-#RUN apk --no-cache add ca-certificates
-#COPY --from=develop /application-server/build/application-server /usr/bin/application-server
-#COPY --from=develop /application-server/configuration/application-server/application-server.toml /etc/application-server/application-server.toml
-
-#USER nobody:nogroup
-#ENTRYPOINT ["/usr/bin/meteostation-service"]
+USER nobody:nogroup
+ENTRYPOINT ["/usr/bin/meteostation"]
 
 
 

@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/ip75/meteostation/config"
 	"github.com/spf13/cobra"
@@ -44,8 +45,21 @@ to quickly create a Cobra application.`,
 		fmt.Fprintln(os.Stderr, "run root:", cmd.Use)
 
 		// launch routine to receive data from redis and put them to postgres
-		//		go
 
+		tick := time.Tick(400 * time.Millisecond)
+		boom := time.After(600 * time.Second)
+		for {
+			select {
+			case <-tick:
+				fmt.Println("tick.")
+			case <-boom:
+				fmt.Println("BOOM!")
+				return
+			default:
+				fmt.Println("    .")
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
 	},
 }
 
