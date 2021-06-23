@@ -7,7 +7,7 @@
 #include <Preferences.h>
 
 
-#define REDIS_ADDR "0.0.0.0"
+#define REDIS_HOST "redis"
 #define REDIS_PORT 6379
 #define REDIS_PASSWORD "password"
 #define REDIS_QUEUE "meteostation:bmp280"
@@ -35,10 +35,30 @@ Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 // Replace with your network credentials
 const char* ssid = "BSD";
 const char* password = "kuku01KUKU01";
+unsigned long previousMillis = 0;
+unsigned long CHECK_WIFI_TIME = 10000;
 
 WiFiClient redisConn;
 Redis *gRedis = nullptr;
-DNSClient dns;
+
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
+  // Print local IP address and start web server
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Disconnected from WiFi access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.disconnected.reason);
+  Serial.println("Trying to Reconnect");
+  WiFi.begin(ssid, password);
+}
+
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Connected to AP successfully!");
+}
 
 void setup() {
   Serial.begin(115200);
@@ -84,23 +104,39 @@ void setup() {
   preferences.end();
 */
 
+  // delete old config
+  WiFi.disconnect(true);
+  delay(1000);
+
+  WiFi.onEvent(WiFiStationConnected, SYSTEM_EVENT_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, SYSTEM_EVENT_STA_GOT_IP);
+  WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
+      delay(1000);
       Serial.print(".");
   }
 
-  // Print local IP address and start web server
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  /* Remove WiFi event
+  Serial.print("WiFi Event ID: ");
+  Serial.println(eventID);
+  WiFi.removeEvent(eventID);*/
 
-  if (!redisConn.connect(REDIS_ADDR, REDIS_PORT))
+/*
+  IPAddress srv((uint32_t)0);
+  if(!WiFi.hostByName("redis", srv)){
+        return 0;
+  }
+  return connect(srv, port, timeout);
+*/
+
+
+// connect to redis storage
+  if (!redisConn.connect(REDIS_HOST, REDIS_PORT))
   {
       Serial.println("Failed to connect to the Redis server!");
       return;
