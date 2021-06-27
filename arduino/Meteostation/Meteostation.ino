@@ -139,9 +139,9 @@ void setup() {
       return;
   }
   Serial.printf("Connected to the Redis server at %s:%d!\n", REDIS_HOST, REDIS_PORT);
+  gRedis = new Redis(redisConn);
 
 /*
-  gRedis = new Redis(redisConn);
   auto connRet = gRedis->authenticate(REDIS_PASSWORD);
   if (connRet == RedisSuccess)
   {
@@ -200,8 +200,8 @@ typedef struct {
     bmp_temperature->getEvent(&temp_event);
     bmp_pressure->getEvent(&pressure_event);
 
-//    Serial.printf("Temperature = %f *C\n", temp_event.temperature);
-//    Serial.printf("Pressure = %f hPa\n", pressure_event.pressure);
+    Serial.printf("Temperature = %f *C\n", temp_event.temperature);
+    Serial.printf("Pressure = %f hPa\n", pressure_event.pressure);
 
     // push data to redis
 
