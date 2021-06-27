@@ -9,6 +9,8 @@ import (
 	"github.com/ip75/meteostation/config"
 )
 
+var RDB RClient
+
 type RClient struct {
 	Db *redis.Client
 }
@@ -22,22 +24,36 @@ type SensorData struct {
 var ctx = context.Background()
 
 func (r RClient) Init() {
-	r.Db = redis.NewClient(&redis.Options{
+	client := redis.NewClient(&redis.Options{
 		Addr:     config.C.Redis.URL,
 		Password: config.C.Redis.Password, // no password set
 		DB:       config.C.Redis.Database, // use default DB
 	})
+
+	RDB = RClient{client}
 }
 
 // pull data from redis queue with data from sensor
-func (r RClient) Pull() SensorData {
-	data := r.Db.RPop(ctx, config.C.Redis.Queue)
-	if err := data.Err(); err != nil {
+func (r RClient) Pull() []SensorData {
+
+	data, err := r.Db.BRPop(ctx, 0, config.C.Redis.Queue).Result()
+
+	if err != nil {
 		panic(err)
 	}
 
-	res := SensorData{}
-	json.Unmarshal([]byte(data.Val()), &res)
+	var result []SensorData
 
-	return res
+	for _, s := range data {
+		point := SensorData{}
+		json.Unmarshal([]byte(s), &point)
+
+		// This is not a timestamp this is clock from start of device.
+		// so we overwrite it with current simestamp
+		point.Date = time.Now()
+
+		result = append(result, point)
+	}
+
+	return result
 }

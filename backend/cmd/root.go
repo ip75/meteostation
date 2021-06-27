@@ -18,9 +18,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ip75/meteostation/config"
+	"github.com/ip75/meteostation/storage"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -46,19 +46,12 @@ to quickly create a Cobra application.`,
 
 		// launch routine to receive data from redis and put them to postgres
 
-		tick := time.Tick(400 * time.Millisecond)
-		boom := time.After(600 * time.Second)
+		storage.RDB.Init()
+		storage.PG.Init()
+
 		for {
-			select {
-			case <-tick:
-				fmt.Println("tick.")
-			case <-boom:
-				fmt.Println("BOOM!")
-				return
-			default:
-				fmt.Println("    .")
-				time.Sleep(500 * time.Millisecond)
-			}
+			sendorData := storage.RDB.Pull()
+			storage.PG.StoreSensorData(sendorData)
 		}
 	},
 }

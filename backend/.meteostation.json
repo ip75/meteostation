@@ -11,8 +11,8 @@
     },
 
     "redis": {
-        "url" : "redis",
-        "password" : "7c02fca668ca68a9e6fcaf72c164b9d9",
+        "url" : "meteostation:6379",
+        "password" : "",
         "database" : 0,
         "queue" : "meteostation:bmp280"
     }

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var db Storage
+var PG Storage
 
 type Storage struct {
 	pg *sqlx.DB
@@ -33,18 +34,23 @@ func (s Storage) Init() error {
 		}
 	}
 
-	db = Storage{d}
+	PG = Storage{d}
 
 	return err
 }
 
-func (s Storage) StoreSensorData(data *SensorData) error {
+func (s Storage) StoreSensorData(data []SensorData) error {
+
+	if data == nil {
+		return errors.New("storage: No data to store")
+	}
+
 	tx, err := s.pg.Beginx()
 	if err != nil {
 		return fmt.Errorf("storage: Unable to open transaction: %s", err)
 	}
 
-	_, err = tx.NamedExec("INSERT INTO sensor_data (date, temperature, pressure) VALUES (:date, :temperature, :pressure)", &data)
+	_, err = tx.NamedExec("INSERT INTO sensor_data (date, temperature, pressure) VALUES (:date, :temperature, :pressure)", data)
 
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
