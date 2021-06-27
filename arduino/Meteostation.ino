@@ -7,7 +7,7 @@
 #include <Preferences.h>
 
 
-#define REDIS_HOST "redis"
+#define REDIS_HOST "meteostation.bvgm.org"
 #define REDIS_PORT 6379
 #define REDIS_PASSWORD "password"
 #define REDIS_QUEUE "meteostation:bmp280"
@@ -65,7 +65,7 @@ void setup() {
   Serial.println(F("BMP280 Sensor event test"));
   
   //if (!bmp.begin(BMP280_ADDRESS_ALT, BMP280_CHIPID)) {
-  if (!bmp.begin()) {
+  if (!bmp.begin(0x76)) {
       Serial.println(F("Could not find a valid BMP280 sensor, check wiring or "
                         "try a different address!"));
       while (1) delay(10);
@@ -136,6 +136,7 @@ void setup() {
 
 
 // connect to redis storage
+  Serial.printf("Connecting to redis storage %s:%d\n", REDIS_HOST, REDIS_PORT);
   if (!redisConn.connect(REDIS_HOST, REDIS_PORT))
   {
       Serial.println("Failed to connect to the Redis server!");
@@ -146,7 +147,7 @@ void setup() {
   auto connRet = gRedis->authenticate(REDIS_PASSWORD);
   if (connRet == RedisSuccess)
   {
-      Serial.printf("Connected to the Redis server at %s!\n", REDIS_ADDR);
+      Serial.printf("Connected to the Redis server at %s:%d!\n", REDIS_HOST, REDIS_PORT);
   }
   else
   {

@@ -23,15 +23,15 @@ services:
     image: redis:alpine
     hostname: redis
     ports:
-      - "6379"
+      - 6379:6379
     volumes:
       - rdata:/data:rw
 #      - ./data/redis:/data:rw
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 2
-        delay: 10s
+#    deploy:
+#      replicas: 2
+#      update_config:
+#        parallelism: 2
+#        delay: 10s
       restart_policy:
         condition: on-failure
     
