@@ -64,8 +64,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("BMP280 Sensor event test"));
   
-  //if (!bmp.begin(BMP280_ADDRESS_ALT, BMP280_CHIPID)) {
-  if (!bmp.begin(0x76)) {
+  if (!bmp.begin(BMP280_ADDRESS_ALT, BMP280_CHIPID)) {
       Serial.println(F("Could not find a valid BMP280 sensor, check wiring or "
                         "try a different address!"));
       while (1) delay(10);
@@ -111,8 +110,7 @@ void setup() {
   WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
 
   // Connect to Wi-Fi network with SSID and password
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.printf("Connecting to WiFi AP %s\n", ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
       delay(1000);
@@ -202,15 +200,8 @@ typedef struct {
     bmp_temperature->getEvent(&temp_event);
     bmp_pressure->getEvent(&pressure_event);
 
-    Serial.print(F("Temperature = "));
-    Serial.print(temp_event.temperature);
-    Serial.println(" *C");
-  
-    Serial.print(F("Pressure = "));
-    Serial.print(pressure_event.pressure);
-    Serial.println(" hPa");
-    Serial.println();
-
+//    Serial.printf("Temperature = %f *C\n", temp_event.temperature);
+//    Serial.printf("Pressure = %f hPa\n", pressure_event.pressure);
 
     // push data to redis
 
@@ -226,11 +217,8 @@ typedef struct {
     serializeJson(doc, jsonStr);
     Serial.printf("Sending JSON payload:\n\t'%s'\n", jsonStr.c_str());
 
-    //auto listeners = gRedis->publish("arduino-redis:jsonpub", jsonStr.c_str());
-    //auto listeners = gRedis->publish("meteostation:bmp280", jsonStr.c_str());
     auto list_length = gRedis->lpush(REDIS_QUEUE, jsonStr.c_str());
 
-    
     Serial.printf("Push sensor values to %s list in redis storage: %d\n", REDIS_QUEUE, list_length);
 
     doc.clear();
