@@ -27,7 +27,7 @@ services:
     volumes:
       - rdata:/data:rw
 #      - ./data/redis:/data:rw
-#    deploy:
+    deploy:
 #      replicas: 2
 #      update_config:
 #        parallelism: 2
