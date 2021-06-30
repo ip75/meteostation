@@ -40,7 +40,7 @@ networks:
     name: meteostation-net
 
 volumes:
-  pgdata:
+#  pgdata:
 #    driver: local
   rdata:
 #    driver: local
