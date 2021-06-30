@@ -15,16 +15,18 @@ services:
       POSTGRES_DB: meteostation
       POSTGRES_USER: meteostation
       POSTGRES_PASSWORD: meteostation
-      PGDATA: /postgresql/data
+      PGDATA: /postgres/data
     volumes:
-      - ./data/postgres:/postgresql/data:rw
+#      - ./data/postgres:/postgres/data
+      - pgdata:/postgres/data
   redis:
     image: redis:alpine
     hostname: redis
     ports:
       - 6379:6379
     volumes:
-      - ./data/redis:/data:rw
+#      - ./data/redis:/data:rw
+      - rdata:/data:rw
     deploy:
 #      replicas: 2
 #      update_config:
