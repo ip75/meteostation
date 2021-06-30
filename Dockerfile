@@ -28,8 +28,8 @@ COPY --from=develop $PROJECT_PATH/backend/meteostation /usr/bin/meteostation
 COPY --from=develop $PROJECT_PATH/backend/.meteostation.json /etc/.meteostation.json
 COPY --from=develop $PROJECT_PATH/ui/meteostation/dist /www/static
 
-USER nobody:nogroup
-ENTRYPOINT ["/usr/bin/meteostation"]
+USER postgres:postgres
+#ENTRYPOINT ["/usr/bin/meteostation"]
 
 
 

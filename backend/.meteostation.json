@@ -5,7 +5,7 @@
     },
 
     "postgresql": {
-        "dsn" : "pgsql:host=localhost;port=5432;dbname=meteostation;user=meteostation;password=7c02fca668ca68a9e6fcaf72c164b9d9",
+        "dsn" : "pgsql:host=localhost;port=5432;dbname=meteostation;user=meteostation;password=meteostation",
         "max_open_connections" : 1000,
         "max_idle_connections" : 2000
     },
