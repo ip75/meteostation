@@ -34,6 +34,20 @@ func (r RClient) Init() {
 }
 
 // pull data from redis queue with data from sensor
+func (r RClient) PullPoint() SensorData {
+	data, err := r.Db.RPop(ctx, config.C.Redis.Queue).Result()
+
+	if err != nil {
+		panic(err)
+	}
+
+	var sensor SensorData
+	json.Unmarshal([]byte(data), &sensor)
+
+	return sensor
+}
+
+// pull data from redis queue with data from sensor
 func (r RClient) Pull() []SensorData {
 
 	data, err := r.Db.BRPop(ctx, 0, config.C.Redis.Queue).Result()

@@ -39,6 +39,30 @@ func (s Storage) Init() error {
 	return err
 }
 
+func (s Storage) StoreSensorPoint(sensor SensorData) error {
+
+	tx, err := s.pg.Beginx()
+	if err != nil {
+		return fmt.Errorf("storage: Unable to open transaction: %s", err)
+	}
+
+	_, err = tx.NamedExec("INSERT INTO sensor_data (date, temperature, pressure) VALUES (:date, :temperature, :pressure)", sensor)
+
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("storage: transaction rollback error: %s", rbErr)
+		}
+
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("storage: transaction commit error: %s", err)
+	}
+	return nil
+
+}
+
 func (s Storage) StoreSensorData(data []SensorData) error {
 
 	if data == nil {

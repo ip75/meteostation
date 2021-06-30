@@ -49,9 +49,14 @@ to quickly create a Cobra application.`,
 		storage.RDB.Init()
 		storage.PG.Init()
 
+		sdChannel := make(chan []storage.SensorData)
 		for {
-			sendorData := storage.RDB.Pull()
-			storage.PG.StoreSensorData(sendorData)
+			select {
+			case sdChannel <- storage.RDB.Pull():
+			case s := <-sdChannel:
+				storage.PG.StoreSensorData(s)
+			}
+
 		}
 	},
 }
