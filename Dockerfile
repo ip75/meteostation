@@ -20,7 +20,7 @@ RUN yarn build
 
 WORKDIR $PROJECT_PATH
 
-FROM postgres:latest AS production
+FROM alpine:latest AS production
 ENV PROJECT_PATH=/meteostation
 
 # copy result to target directory
@@ -32,7 +32,7 @@ COPY --from=develop $PROJECT_PATH/ui/meteostation/dist /www/static
 # chmod: changing permissions of '/postgres/data': Operation not permitted
 # USER postgres:postgres
 
-#ENTRYPOINT ["/usr/bin/meteostation"]
+ENTRYPOINT ["/usr/bin/meteostation"]
 
 
 
