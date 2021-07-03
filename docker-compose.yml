@@ -18,6 +18,10 @@ services:
     container_name: meteostation
     image: meteostation:latest
     hostname: meteostation
+    restart: on-failure
+    depends_on:
+      - pg
+      - redis
     ports:
       - 80:50000
     environment:
