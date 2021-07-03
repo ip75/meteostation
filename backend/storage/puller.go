@@ -3,6 +3,8 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -16,12 +18,16 @@ type RClient struct {
 }
 
 type SensorData struct {
-	Temperature int       `json:"temperature" db:"temperature"`
-	Pressure    int       `json:"pressure"    db:"pressure"`
-	Date        time.Time `json:"date"        db:"date"`
+	Temperature float64 `json:"temperature"`
+	Pressure    float64 `json:"pressure"`
+	Clock       int64   `json:"time"`
 }
 
-var ctx = context.Background()
+type SensorDataDatabase struct {
+	Temperature float64   `db:"temperature"`
+	Pressure    float64   `db:"pressure"`
+	Date        time.Time `db:"dt"`
+}
 
 func (r RClient) Init() {
 	client := redis.NewClient(&redis.Options{
@@ -35,7 +41,7 @@ func (r RClient) Init() {
 
 // pull data from redis queue with data from sensor
 func (r RClient) PullPoint() SensorData {
-	data, err := r.Db.RPop(ctx, config.C.Redis.Queue).Result()
+	data, err := r.Db.RPop(context.Background(), config.C.Redis.Queue).Result()
 
 	if err != nil {
 		panic(err)
@@ -48,26 +54,38 @@ func (r RClient) PullPoint() SensorData {
 }
 
 // pull data from redis queue with data from sensor
-func (r RClient) Pull() []SensorData {
+func (r RClient) Pull() []SensorDataDatabase {
 
-	data, err := r.Db.BRPop(ctx, 0, config.C.Redis.Queue).Result()
+	var result []SensorDataDatabase
 
-	if err != nil {
-		panic(err)
-	}
+	for i := 0; i < config.C.General.PoolSize; i++ {
 
-	var result []SensorData
+		data, err := r.Db.BRPop(context.Background(), 0, config.C.Redis.Queue).Result()
 
-	for _, s := range data {
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "BRPop error:", err)
+		}
+
+		if len(data) < 2 {
+			fmt.Fprintln(os.Stderr, "BRPop error: no data from redis")
+			return nil
+		}
+
 		point := SensorData{}
-		json.Unmarshal([]byte(s), &point)
+		if err = json.Unmarshal([]byte(data[1]), &point); err != nil {
+			fmt.Fprintln(os.Stderr, "unable to unmarshal:", err)
+		}
 
 		// This is not a timestamp this is clock from start of device.
 		// so we overwrite it with current simestamp
-		point.Date = time.Now()
-
-		result = append(result, point)
+		result = append(result, SensorDataDatabase{
+			Temperature: point.Temperature,
+			Pressure:    point.Pressure,
+			Date:        time.Now(),
+		})
 	}
+
+	fmt.Printf("storage: pull %d records from redis\n", len(result))
 
 	return result
 }

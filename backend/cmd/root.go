@@ -17,7 +17,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ip75/meteostation/config"
 	"github.com/ip75/meteostation/storage"
@@ -44,21 +47,33 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "run root:", cmd.Use)
 
-		storage.PlayMigrations()
+		term := make(chan os.Signal, 1)
+		signal.Notify(term, os.Interrupt, syscall.SIGTERM)
+
+		storage.PG.PlayMigrations()
 
 		// launch routine to receive data from redis and put them to postgres
 
 		storage.RDB.Init()
 		storage.PG.Init()
 
-		sdChannel := make(chan []storage.SensorData)
+		sdChannel := make(chan []storage.SensorDataDatabase)
+
+		go func() {
+			for {
+				storage.PG.StoreSensorData(<-sdChannel)
+			}
+		}()
+
 		for {
 			select {
 			case sdChannel <- storage.RDB.Pull():
-			case s := <-sdChannel:
-				storage.PG.StoreSensorData(s)
+			case <-term:
+				log.Print("Got signal SIGTERM and exit", term)
+				os.Exit(0)
+				//default:
+				//	log.Print("waiting for data from channel...")
 			}
-
 		}
 	},
 }

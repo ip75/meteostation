@@ -1,11 +1,12 @@
 {
     "general": {
         "log_level": 1,
-        "log_to_syslog": false
+        "log_to_syslog": false,
+        "sensor_data_pool_size": 60
     },
 
     "postgresql": {
-        "dsn" : "pgsql:host=localhost;port=5432;dbname=meteostation;user=meteostation;password=meteostation",
+        "dsn" : "postgres://meteostation:meteostation@pg:5432/meteostation?sslmode=disable",
         "max_open_connections" : 1000,
         "max_idle_connections" : 2000
     },
