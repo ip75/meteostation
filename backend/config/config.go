@@ -5,6 +5,7 @@ type Config struct {
 	General struct {
 		LogLevel    int  `mapstructure:"log_level"`
 		LogToSyslog bool `mapstructure:"log_to_syslog"`
+		PoolSize    int  `mapstructure:"sensor_data_pool_size"`
 	} `mapstructure:"general"`
 
 	PostgreSQL struct {

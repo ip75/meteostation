@@ -1,35 +1,59 @@
-version "3.9"
+version: "3.9"
 
 services:
+  pg:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: meteostation
+      POSTGRES_USER: meteostation
+      POSTGRES_PASSWORD: meteostation
+      PGDATA: /postgres/data
+    volumes:
+#      - ./data/postgres:/postgres/data
+      - pgdata:/postgres/data
+    
   meteostation:
     container_name: meteostation
     image: meteostation:latest
-    build:
-      dockerfile: ./Dockerfile
+    hostname: meteostation
+    restart: on-failure
+    depends_on:
+      - pg
+      - redis
     ports:
-      - 5432:5432
       - 80:50000
     environment:
-      POSTGRES_DB:meteostation
-      POSTGRES_USER:meteostation
-      POSTGRES_PASSWORD:meteostation
-      PGDATA:/postgresql/data
-    volumes:
-      - /postgresql/data:/data/postgres
+      POSTGRES_DB: meteostation
+      POSTGRES_USER: meteostation
+      POSTGRES_PASSWORD: meteostation
+      POSTGRES_HOST: pg
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
   redis:
     image: redis:alpine
+    hostname: redis
     ports:
-      - "6379"
+      - 6379:6379
     volumes:
-      - /data:/data/redis
+#      - ./data/redis:/data:rw
+      - rdata:/data:rw
     deploy:
-      replicas: 2
-      update_config:
-        parallelism: 2
-        delay: 10s
+#      replicas: 2
+#      update_config:
+#        parallelism: 2
+#        delay: 10s
       restart_policy:
         condition: on-failure
     
 networks:
   default:
     name: meteostation-net
+
+volumes:
+  pgdata:
+#    driver: local
+  rdata:
+#    driver: local
