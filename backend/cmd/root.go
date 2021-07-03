@@ -44,6 +44,8 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "run root:", cmd.Use)
 
+		storage.PlayMigrations()
+
 		// launch routine to receive data from redis and put them to postgres
 
 		storage.RDB.Init()
