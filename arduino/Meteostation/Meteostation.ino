@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <Preferences.h>
 
+#define LED_BUILTIN 2
 
 #define REDIS_HOST "meteostation.bvgm.org"
 #define REDIS_PORT 6379
@@ -156,6 +157,8 @@ void setup() {
   //  keep data in queue specified time in seconds. Default: one month statistics
   //gRedis->expire(REDIS_QUEUE, 31 * 24 * 60 * 60);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+
 }
 
 StaticJsonDocument<2048> doc;
@@ -163,9 +166,12 @@ unsigned long lastPost = 0;
 
 void loop() {
 
+  digitalWrite(LED_BUILTIN, LOW);
+  
   auto startTime = millis();
   if (startTime - lastPost > POST_FREQUENCY)
   {
+    digitalWrite(LED_BUILTIN, HIGH);
 
 /*
 // Sensor event (36 bytes)
@@ -196,6 +202,7 @@ typedef struct {
 } sensors_event_t;
 */
 
+    
     sensors_event_t temp_event, pressure_event;
     bmp_temperature->getEvent(&temp_event);
     bmp_pressure->getEvent(&pressure_event);
