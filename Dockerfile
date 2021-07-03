@@ -24,15 +24,16 @@ FROM alpine:latest AS production
 ENV PROJECT_PATH=/meteostation
 
 # copy distrib to target directory
-COPY --from=develop $PROJECT_PATH/backend/meteostation /meteostation/meteostation
-COPY --from=develop $PROJECT_PATH/backend/storage/migrations/* /meteostation/storage/migrations/
+COPY --from=develop $PROJECT_PATH/backend/meteostation $PROJECT_PATH/meteostation
+COPY --from=develop $PROJECT_PATH/backend/storage/migrations/* $PROJECT_PATH/storage/migrations/
 COPY --from=develop $PROJECT_PATH/backend/.meteostation.json /etc/.meteostation.json
-COPY --from=develop $PROJECT_PATH/ui/meteostation/dist /meteostation/www/static
+COPY --from=develop $PROJECT_PATH/ui/meteostation/dist $PROJECT_PATH/www/static
 
 # if you set USER postgres:postgres you will get error on start container fixing permissions on existing directory /postgres/data ... initdb: error: could not change permissions of directory "/postgres/data": Operation not permitted
 # chmod: changing permissions of '/postgres/data': Operation not permitted
 # USER postgres:postgres
 
+WORKDIR $PROJECT_PATH
 ENTRYPOINT ["/meteostation/meteostation"]
 
 
