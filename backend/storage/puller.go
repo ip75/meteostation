@@ -30,6 +30,9 @@ type SensorDataDatabase struct {
 }
 
 func (r RClient) Init() {
+
+	fmt.Fprintln(os.Stdout, "storage: connect to Redis", config.C.Redis.URL)
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     config.C.Redis.URL,
 		Password: config.C.Redis.Password, // no password set

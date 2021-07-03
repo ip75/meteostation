@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -10,6 +11,7 @@ import (
 
 func (s Storage) PlayMigrations() {
 
+	fmt.Println("Play migrations with DSN: ", s.ComposeDSN())
 	m, err := migrate.New("file://storage/migrations", s.ComposeDSN())
 	if err != nil {
 		log.Fatal(err)
