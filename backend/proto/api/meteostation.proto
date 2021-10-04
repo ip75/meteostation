@@ -1,0 +1,38 @@
+syntax = "proto3";
+package meteo.service;
+option go_package = "github.com/ip75/meteostation/go/v1/proto/meteostation";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+message Filter {
+    google.protobuf.Timestamp from = 1;
+    google.protobuf.Timestamp to = 2;
+    int64 granularity = 3;
+}
+
+message SensorData {
+    int32 temperature = 1;
+    int32 pressure = 2;
+    google.protobuf.Timestamp measureTime = 3;
+}
+
+
+message MeteoData {
+    int64 TotalCount = 1;
+    repeated SensorData data = 2;
+}
+
+service MeteostationService {
+  rpc GetMeteoData(Filter) returns (MeteoData) {
+    option (google.api.http) = {
+      post: "/v1/getMeteoData"
+      body: "*"
+    };
+  }
+}
+
+
+
+
+

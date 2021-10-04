@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ip75/meteostation/config"
+	meteostation "github.com/ip75/meteostation/proto/api"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -115,4 +116,35 @@ func (s Storage) StoreSensorData(data []SensorDataDatabase) error {
 	fmt.Printf("storage: dump %d records to database\n", len(data))
 
 	return nil
+}
+
+type MeteoDataEntity struct {
+	dt          time.Time `db:"dt"`
+	temperature int64     `db:"temperature"`
+	pressure    int64     `db:"pressure"`
+	altitude    int64     `db:"altitude"`
+}
+
+func (s Storage) GetMeteoData(filter *meteostation.Filter) (meteostation.MeteoData, error) {
+
+	data := MeteoDataEntity{
+		dt:          time.Now(),
+		temperature: 0,
+		pressure:    0,
+		altitude:    0,
+	}
+
+	var from time.Time = time.Now().Add(time.Hour * 24 * -31)
+	var to time.Time = time.Now()
+	var granularity int64 = 1000
+
+	if filter != nil {
+		from = filter.From.AsTime()
+		to = filter.To.AsTime()
+		granularity = filter.Granularity
+	}
+
+	s.pg.Get(&data, "SELECT * FROM meteodata", from, to, granularity)
+
+	return meteostation.MeteoData{TotalCount: 0}, nil
 }

@@ -23,6 +23,7 @@ import (
 	"syscall"
 
 	"github.com/ip75/meteostation/config"
+	"github.com/ip75/meteostation/server"
 	"github.com/ip75/meteostation/storage"
 	"github.com/spf13/cobra"
 
@@ -58,6 +59,10 @@ to quickly create a Cobra application.`,
 		storage.PG.Init()
 
 		sdChannel := make(chan []storage.SensorDataDatabase)
+
+		go func() {
+			server.Start()
+		}()
 
 		go func() {
 			for {
