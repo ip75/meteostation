@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/ip75/meteostation/config"
 	meteostation "github.com/ip75/meteostation/proto/api"
 	"github.com/jmoiron/sqlx"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var PG Storage
@@ -119,24 +121,19 @@ func (s Storage) StoreSensorData(data []SensorDataDatabase) error {
 }
 
 type MeteoDataEntity struct {
-	dt          time.Time `db:"dt"`
-	temperature int64     `db:"temperature"`
-	pressure    int64     `db:"pressure"`
-	altitude    int64     `db:"altitude"`
+	dt          time.Time       `db:"dt"`
+	temperature float64         `db:"temperature"`
+	pressure    float64         `db:"pressure"`
+	altitude    sql.NullFloat64 `db:"altitude"`
 }
 
-func (s Storage) GetMeteoData(filter *meteostation.Filter) (meteostation.MeteoData, error) {
+func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoData, error) {
 
-	data := MeteoDataEntity{
-		dt:          time.Now(),
-		temperature: 0,
-		pressure:    0,
-		altitude:    0,
-	}
+	var data []MeteoDataEntity
 
 	var from time.Time = time.Now().Add(time.Hour * 24 * -31)
 	var to time.Time = time.Now()
-	var granularity int64 = 1000
+	var granularity int64 = 0
 
 	if filter != nil {
 		from = filter.From.AsTime()
@@ -144,7 +141,38 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (meteostation.MeteoDa
 		granularity = filter.Granularity
 	}
 
-	s.pg.Get(&data, "SELECT * FROM meteodata", from, to, granularity)
+	if granularity == 0 {
+		err := s.pg.Select(&data, `
+			SELECT * 
+			FROM meteodata m
+			WHERE
+				dt BETWEEN $1 AND $2`,
+			from,
+			to,
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		/*
+			SELECT t.*
+			FROM (
+			SELECT *, row_number() OVER(ORDER BY id ASC) AS row
+			FROM yourtable
+			) t
+			WHERE t.row % 5 = 0
+		*/
+	}
 
-	return meteostation.MeteoData{TotalCount: 0}, nil
+	var sd []*meteostation.SensorData
+	for _, d := range data {
+		sd = append(sd, &meteostation.SensorData{
+			Temperature: d.temperature,
+			Pressure:    d.pressure,
+			Altitude:    d.altitude.Float64,
+			MeasureTime: timestamppb.New(d.dt),
+		})
+	}
+
+	return &meteostation.MeteoData{TotalCount: uint64(len(sd)), Data: sd}, nil
 }

@@ -12,14 +12,14 @@ message Filter {
 }
 
 message SensorData {
-    int32 temperature = 1;
-    int32 pressure = 2;
-    google.protobuf.Timestamp measureTime = 3;
+    double temperature = 1;
+    double pressure = 2;
+    double altitude = 3;
+    google.protobuf.Timestamp measureTime = 4;
 }
 
-
 message MeteoData {
-    int64 TotalCount = 1;
+    uint64 TotalCount = 1;
     repeated SensorData data = 2;
 }
 

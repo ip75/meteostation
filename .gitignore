@@ -25,6 +25,8 @@ pnpm-debug.log*
 # golang
 vendor
 
-
+# compilled frontend
 ui/meteostation/dist/*
 
+# binaries
+backend/meteostation

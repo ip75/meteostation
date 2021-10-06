@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/golang-migrate/migrate/v4 v4.14.1
-	github.com/golang/glog v1.0.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/mitchellh/go-homedir v1.1.0
