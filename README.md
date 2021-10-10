@@ -1,5 +1,5 @@
 # Meteostation
-This is a system that collects data from ESP32 + BPM280 sensor (temperature and pressure) to database to show changing dynamic of these parameters.
+This is a system that collects data from ESP32 + BPM280 sensor (temperature and pressure) to database to show changing parameters in charts.
 
 # Install
 
