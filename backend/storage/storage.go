@@ -121,10 +121,10 @@ func (s Storage) StoreSensorData(data []SensorDataDatabase) error {
 }
 
 type MeteoDataEntity struct {
-	dt          time.Time       `db:"dt"`
-	temperature float64         `db:"temperature"`
-	pressure    float64         `db:"pressure"`
-	altitude    sql.NullFloat64 `db:"altitude"`
+	Dt          time.Time       `db:"dt"`
+	Temperature float64         `db:"temperature"`
+	Pressure    float64         `db:"pressure"`
+	Altitude    sql.NullFloat64 `db:"altitude"`
 }
 
 func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoData, error) {
@@ -143,7 +143,11 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 
 	if granularity == 0 {
 		err := s.pg.Select(&data, `
-			SELECT * 
+			SELECT 
+				dt,
+				temperature,
+				pressure,
+				altitude 
 			FROM meteodata m
 			WHERE
 				dt BETWEEN $1 AND $2`,
@@ -167,10 +171,10 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 	var sd []*meteostation.SensorData
 	for _, d := range data {
 		sd = append(sd, &meteostation.SensorData{
-			Temperature: d.temperature,
-			Pressure:    d.pressure,
-			Altitude:    d.altitude.Float64,
-			MeasureTime: timestamppb.New(d.dt),
+			Temperature: d.Temperature,
+			Pressure:    d.Pressure,
+			Altitude:    d.Altitude.Float64,
+			MeasureTime: timestamppb.New(d.Dt),
 		})
 	}
 

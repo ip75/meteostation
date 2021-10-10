@@ -11,8 +11,8 @@ type MeteostationServer struct {
 	pb.UnimplementedMeteostationServiceServer
 }
 
-func NewMeteostationServer() MeteostationServer {
-	return MeteostationServer{}
+func NewMeteostationServer() *MeteostationServer {
+	return &MeteostationServer{}
 }
 
 func (s *MeteostationServer) GetMeteoData(ctx context.Context, filter *pb.Filter) (*pb.MeteoData, error) {

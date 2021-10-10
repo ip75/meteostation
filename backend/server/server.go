@@ -2,19 +2,11 @@ package server
 
 import (
 	"context"
-	"flag"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc"
 
 	gw "github.com/ip75/meteostation/proto/api"
-)
-
-var (
-	// command-line options:
-	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", "localhost:9090", "gRPC server endpoint")
 )
 
 func Start() error {
@@ -25,9 +17,8 @@ func Start() error {
 	// Register gRPC server endpoint
 	// Note: Make sure the gRPC server is running properly and accessible
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	if err := gw.RegisterMeteostationServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts); err != nil {
+	if err := gw.RegisterMeteostationServiceHandlerServer(ctx, mux, NewMeteostationServer()); err != nil {
 		return err
 	}
 
