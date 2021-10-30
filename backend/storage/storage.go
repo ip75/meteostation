@@ -133,7 +133,7 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 
 	var from time.Time = time.Now().Add(time.Hour * 24 * -31)
 	var to time.Time = time.Now()
-	var granularity int64 = 0
+	var granularity int64 = 1
 
 	if filter != nil {
 		from = filter.From.AsTime()
@@ -141,8 +141,7 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 		granularity = filter.Granularity
 	}
 
-	if granularity == 0 {
-		err := s.pg.Select(&data, `
+	err := s.pg.Select(&data, `
 			SELECT 
 				dt,
 				temperature,
@@ -150,22 +149,14 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 				altitude 
 			FROM meteodata m
 			WHERE
-				dt BETWEEN $1 AND $2`,
-			from,
-			to,
-		)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		/*
-			SELECT t.*
-			FROM (
-			SELECT *, row_number() OVER(ORDER BY id ASC) AS row
-			FROM yourtable
-			) t
-			WHERE t.row % 5 = 0
-		*/
+				dt BETWEEN $1 AND $2
+				AND id % $3 = 0`,
+		from,
+		to,
+		granularity,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	var sd []*meteostation.SensorData
