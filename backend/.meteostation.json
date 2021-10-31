@@ -2,7 +2,11 @@
     "general": {
         "log_level": 1,
         "log_to_syslog": false,
-        "sensor_data_pool_size": 60
+        "sensor_data_pool_size": 60,
+        "grpc_http_gateway_port": 65000,
+        "grpc_service_port": 64000,
+        "http_port": 63000,
+        "web_client_dir": "./www/static"
     },
 
     "postgresql": {

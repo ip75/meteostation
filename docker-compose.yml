@@ -23,9 +23,9 @@ services:
       - pg
       - redis
     ports:
-      - 80:50000
-      - 10000:8081
-      - 20000:9090
+      - 80:63000
+      - 10000:65000
+      - 20000:63000
     environment:
       POSTGRES_DB: meteostation
       POSTGRES_USER: meteostation

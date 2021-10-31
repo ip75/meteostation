@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -47,6 +48,7 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "run root:", cmd.Use)
+		log.SetOutput(os.Stdout)
 
 		term := make(chan os.Signal, 1)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM)
@@ -54,22 +56,30 @@ to quickly create a Cobra application.`,
 		storage.PG.PlayMigrations()
 
 		// launch routine to receive data from redis and put them to postgres
-
 		storage.RDB.Init()
 		storage.PG.Init()
 
 		sdChannel := make(chan []storage.SensorDataDatabase)
 
-		go func() {
-			server.Start()
-		}()
+		ctx := context.Background()
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 
+		// start backend
+		log.Print("start backend...")
+		go func() { server.StartHosting(ctx) }()
+		go func() { server.StartGrpcService(ctx) }()
+		go func() { server.StartGateway(ctx) }()
+
+		// routine to catch data from channel and drop it to database
 		go func() {
 			for {
 				storage.PG.StoreSensorData(<-sdChannel)
 			}
 		}()
 
+		// routine to pull sensor data from redis to channel
+		log.Print("start receiving data from sensors...")
 		for {
 			select {
 			case sdChannel <- storage.RDB.Pull():

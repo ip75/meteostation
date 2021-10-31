@@ -26,7 +26,7 @@ message MeteoData {
 service MeteostationService {
   rpc GetMeteoData(Filter) returns (MeteoData) {
     option (google.api.http) = {
-      post: "/v1/getMeteoData"
+      post: "/getMeteoData"
       body: "*"
     };
   }

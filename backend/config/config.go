@@ -3,9 +3,13 @@ package config
 // Config defines the configuration structure.
 type Config struct {
 	General struct {
-		LogLevel    int  `mapstructure:"log_level"`
-		LogToSyslog bool `mapstructure:"log_to_syslog"`
-		PoolSize    int  `mapstructure:"sensor_data_pool_size"`
+		LogLevel            int    `mapstructure:"log_level"`
+		LogToSyslog         bool   `mapstructure:"log_to_syslog"`
+		PoolSize            int    `mapstructure:"sensor_data_pool_size"`
+		GrpcHttpGatewayPort uint16 `mapstructure:"grpc_http_gateway_port"`
+		GrpcServicePort     uint16 `mapstructure:"grpc_service_port"`
+		HttpPort            uint16 `mapstructure:"http_port"`
+		WebStaticDir        string `mapstructure:"web_static_dir"`
 	} `mapstructure:"general"`
 
 	PostgreSQL struct {

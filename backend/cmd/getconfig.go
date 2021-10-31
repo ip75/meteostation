@@ -22,7 +22,29 @@ import (
 )
 
 const configTemplate = `
+{
+    "general": {
+        "log_level": 1,
+        "log_to_syslog": false,
+        "sensor_data_pool_size": 60,
+        "grpc_service_port": 65000,
+        "http_port": 64000,
+        "web_client_dir": "./static"
+    },
 
+    "postgresql": {
+        "dsn" : "postgres://meteostation:meteostation@pg:5432/meteostation?sslmode=disable",
+        "max_open_connections" : 1000,
+        "max_idle_connections" : 2000
+    },
+
+    "redis": {
+        "url" : "redis:6379",
+        "password" : "",
+        "database" : 0,
+        "queue" : "meteostation:bmp280"
+    }
+}
 `
 
 // getconfigCmd represents the getconfig command
