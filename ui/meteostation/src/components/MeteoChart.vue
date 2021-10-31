@@ -264,12 +264,12 @@ export default {
           { 
             from: now.setMonth(now.getMonth() - 1),
             to: now,
-            granularity: 1000,
+            granularity: 10,
           }
         )
       };
 
-      fetch("$backend_url/v1/getMeteoData", { requestOptions })
+      fetch("$backend_url/getMeteoData", { requestOptions })
         .then(response => response.json())
         .then(meteodata => (this.series = [{ data: this.meteodataToSeries(meteodata) }] ));
 
