@@ -10,6 +10,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/ip75/meteostation/config"
 	gw "github.com/ip75/meteostation/proto/api"
@@ -59,7 +60,7 @@ func StartGateway(ctx context.Context) error {
 
 	// register gRPC client handler to meteostation server
 	mux := runtime.NewServeMux()
-	if err := gw.RegisterMeteostationServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, []grpc.DialOption{grpc.WithInsecure()}); err != nil {
+	if err := gw.RegisterMeteostationServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}); err != nil {
 		return err
 	}
 
