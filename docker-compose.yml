@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   pg:
+    container_name: postgres
     image: postgres:latest
     ports:
       - 5432:5432
@@ -36,6 +37,7 @@ services:
       dockerfile: ./Dockerfile
   redis:
     image: redis:alpine
+    container_name: redis
     hostname: redis
     ports:
       - 6379:6379

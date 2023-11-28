@@ -5,15 +5,16 @@
 #include <Redis.h>
 #include <ArduinoJson.h>
 #include <Preferences.h>
+//#include <esp_wifi/include/esp_wifi_types.h>
 
 #define LED_BUILTIN 2
 
-#define REDIS_HOST "meteostation.bvgm.org"
+#define REDIS_HOST "meteostation.bvgm.su"
 #define REDIS_PORT 6379
 #define REDIS_PASSWORD "password"
 #define REDIS_QUEUE "meteostation:bmp280"
 
-#define POST_FREQUENCY 500
+#define POST_FREQUENCY 5000
 
 
 #define BMP_SCK  (13)

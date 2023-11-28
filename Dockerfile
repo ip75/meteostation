@@ -7,7 +7,7 @@ COPY . $PROJECT_PATH
 
 # build backend
 WORKDIR $PROJECT_PATH/backend
-RUN go build
+RUN go build -buildvcs=false
 
 # build frontend
 WORKDIR $PROJECT_PATH/ui/meteostation
