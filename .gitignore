@@ -30,3 +30,5 @@ ui/meteostation/dist/*
 
 # binaries
 backend/meteostation
+.grafana/storage/grafana.db
+.grafana/storage/alerting/1/__default__.tmpl

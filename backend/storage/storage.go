@@ -115,7 +115,7 @@ func (s Storage) StoreSensorData(data []SensorDataDatabase) error {
 		return fmt.Errorf("storage: transaction commit error: %s", err)
 	}
 
-	fmt.Printf("storage: dump %d records to database\n", len(data))
+	fmt.Printf("%s : storage : dump %d records to database\n", time.Now(), len(data))
 
 	return nil
 }
