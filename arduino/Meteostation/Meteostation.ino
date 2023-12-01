@@ -1,3 +1,5 @@
+#include <Adafruit_BMP280.h>
+
 #include <Wire.h>
 #include <WiFi.h>
 #include <SPI.h>
@@ -7,7 +9,7 @@
 #include <Preferences.h>
 //#include <esp_wifi/include/esp_wifi_types.h>
 
-#define LED_BUILTIN 2
+// #define LED_BUILTIN 2
 
 #define REDIS_HOST "meteostation.bvgm.su"
 #define REDIS_PORT 6379
@@ -53,13 +55,28 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Disconnected from WiFi access point");
   Serial.print("WiFi lost connection. Reason: ");
-  Serial.println(info.disconnected.reason);
+  Serial.println(info.wifi_sta_disconnected.reason);
   Serial.println("Trying to Reconnect");
   WiFi.begin(ssid, password);
+
+  reconnectRedis();
 }
 
 void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Connected to AP successfully!");
+}
+
+// reconnect on errors
+void reconnectRedis() {
+  // connect to redis storage
+  Serial.printf("Connecting to redis storage %s:%d\n", REDIS_HOST, REDIS_PORT);
+  if (!redisConn.connect(REDIS_HOST, REDIS_PORT))
+  {
+      Serial.println("Failed to connect to the Redis server!");
+      return;
+  }
+  Serial.printf("Connected to the Redis server at %s:%d!\n", REDIS_HOST, REDIS_PORT);
+  gRedis = new Redis(redisConn);
 }
 
 void setup() {
@@ -107,9 +124,9 @@ void setup() {
   WiFi.disconnect(true);
   delay(1000);
 
-  WiFi.onEvent(WiFiStationConnected, SYSTEM_EVENT_STA_CONNECTED);
-  WiFi.onEvent(WiFiGotIP, SYSTEM_EVENT_STA_GOT_IP);
-  WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+  WiFi.onEvent(WiFiStationConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.printf("Connecting to WiFi AP %s\n", ssid);
