@@ -1,2 +1,2 @@
-[submodule "googleapis"]
-	path = googleapis
+[submodule "backend/googleapis"]
+	path = backend/googleapis

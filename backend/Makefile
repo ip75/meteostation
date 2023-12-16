@@ -4,7 +4,7 @@ proto:
 # https://stackoverflow.com/questions/66168350/import-google-api-annotations-proto-was-not-found-or-had-errors-how-do-i-add/69428167#69428167
 # Generate gRPC stubs
 	protoc -I . \
-		-I ./proto/googleapis \
+		-I ./googleapis \
 		--go_out . \
 		--go_opt paths=source_relative \
 		--go-grpc_out . \
