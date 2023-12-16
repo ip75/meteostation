@@ -3,14 +3,13 @@ FROM golang:latest AS develop
 ENV PROJECT_PATH=/meteostation
 
 RUN mkdir -p $PROJECT_PATH
-COPY ./backend $PROJECT_PATH
+COPY ./backend $PROJECT_PATH/backend
 # COPY ui $PROJECT_PATH
 
 # build backend
 WORKDIR $PROJECT_PATH/backend
 RUN apt-get update
 RUN apt-get install -y protobuf-compiler
-RUN git submodule update
 RUN make install
 RUN make proto
 RUN go build -buildvcs=false

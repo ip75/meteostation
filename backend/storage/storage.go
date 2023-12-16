@@ -43,7 +43,8 @@ func (s Storage) ComposeDSN() string {
 
 func (s Storage) Init() error {
 	fmt.Fprintln(os.Stdout, "storage: connecting to PostgreSQL database...")
-	d, err := sqlx.Open("postgres", s.ComposeDSN())
+	dsn := s.ComposeDSN()
+	d, err := sqlx.Open("postgres", dsn)
 	if err != nil {
 		return fmt.Errorf("storage: PostgreSQL connection error: %w", err)
 	}
@@ -60,9 +61,9 @@ func (s Storage) Init() error {
 	}
 
 	PG = Storage{d}
-	fmt.Fprintln(os.Stdout, "storage: connected to PostgreSQL database")
+	logrus.Info("storage: connected to PostgreSQL database: ", dsn)
 
-	return err
+	return fmt.Errorf("storage init:%w", err)
 }
 
 func (s Storage) StoreSensorPoint(sensor SensorData) error {
@@ -78,7 +79,7 @@ func (s Storage) StoreSensorPoint(sensor SensorData) error {
 			return fmt.Errorf("storage: transaction rollback error: %w", rbErr)
 		}
 
-		return err
+		return fmt.Errorf("storage: append sensor data to database failed: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {

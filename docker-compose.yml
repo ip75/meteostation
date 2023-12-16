@@ -13,6 +13,8 @@ services:
       PGDATA: /postgres/data
     volumes:
       - pgdata:/postgres/data
+    networks:
+      - meteonet
     
   meteostation:
     container_name: meteostation
@@ -22,10 +24,10 @@ services:
     depends_on:
       - pg
       - redis
-    ports:
-      - 80:63000
-      - 10000:65000
-      - 20000:63000
+#    ports:
+#      - 80:63000
+#      - 10000:65000
+#      - 20000:63000
     environment:
       POSTGRES_DB: meteostation
       POSTGRES_USER: meteostation
@@ -34,6 +36,8 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile
+    networks:
+      - meteonet
 
   redis:
     image: redis:alpine
@@ -46,6 +50,8 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+    networks:
+      - meteonet
 
   grafana:
     image: grafana/grafana-enterprise
@@ -58,12 +64,15 @@ services:
       - '3000:3000'
     volumes:
       - '.grafana/storage:/var/lib/grafana'
+    networks:
+      - meteonet
+
 networks:
-  default:
-    name: meteostation-net
+  meteonet:
+    name: meteonet
+    driver: bridge
 
 volumes:
   pgdata:
 #    driver: local
-  rdata:
-#    driver: local
+
