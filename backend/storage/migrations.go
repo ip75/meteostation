@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -14,10 +13,10 @@ func (s Storage) PlayMigrations() {
 	logrus.Info("Play migrations with DSN: ", s.ComposeDSN())
 	m, err := migrate.New("file://storage/migrations", s.ComposeDSN())
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal("create migration failed: ", err)
 	}
 
-	if err := m.Up(); err != nil && errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		logrus.Fatal("play migration failed: ", err)
 	}
 }

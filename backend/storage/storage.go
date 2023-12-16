@@ -63,7 +63,7 @@ func (s Storage) Init() error {
 	PG = Storage{d}
 	logrus.Info("storage: connected to PostgreSQL database: ", dsn)
 
-	return fmt.Errorf("storage init:%w", err)
+	return nil
 }
 
 func (s Storage) StoreSensorPoint(sensor SensorData) error {

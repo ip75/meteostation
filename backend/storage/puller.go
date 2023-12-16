@@ -87,7 +87,7 @@ func (r RClient) Pull() []SensorDataDatabase {
 		})
 	}
 
-	logrus.Infof("storage: pull %d records from redis\n", len(result))
+	logrus.Infof("storage: pull %d records from redis", len(result))
 
 	return result
 }

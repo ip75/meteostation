@@ -18,7 +18,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -49,7 +48,15 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "run root:", cmd.Use)
-		log.SetOutput(os.Stdout)
+		logrus.SetFormatter(&logrus.TextFormatter{
+			DisableColors:             false,
+			FullTimestamp:             true,
+			ForceColors:               true,
+			DisableTimestamp:          false,
+			EnvironmentOverrideColors: false,
+		})
+
+		logrus.SetOutput(os.Stdout)
 
 		term := make(chan os.Signal, 1)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM)
@@ -58,7 +65,9 @@ to quickly create a Cobra application.`,
 
 		// launch routine to receive data from redis and put them to postgres
 		storage.RDB.Init()
-		storage.PG.Init()
+		if err := storage.PG.Init(); err != nil {
+			logrus.Error("initialize postgres failed: ", err)
+		}
 
 		sdChannel := make(chan []storage.SensorDataDatabase)
 
@@ -67,7 +76,7 @@ to quickly create a Cobra application.`,
 		defer cancel()
 
 		// start backend
-		log.Print("start backend...")
+		logrus.Print("start backend...")
 		go func() { server.StartHosting(ctx) }()
 		go func() { server.StartGrpcService(ctx) }()
 		go func() { server.StartGateway(ctx) }()
@@ -82,7 +91,7 @@ to quickly create a Cobra application.`,
 		}()
 
 		// routine to pull sensor data from redis to channel
-		log.Print("start receiving data from sensors...")
+		logrus.Print("start receiving data from sensors...")
 		for {
 			select {
 			case sdChannel <- storage.RDB.Pull():
@@ -90,7 +99,7 @@ to quickly create a Cobra application.`,
 				logrus.Info("Got signal SIGTERM and exit", term)
 				os.Exit(0)
 				// default:
-				//	log.Print("waiting for data from channel...")
+				//	logrus.Print("waiting for data from channel...")
 			}
 		}
 	},
@@ -139,11 +148,13 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		logrus.Error("Using config file: ", viper.ConfigFileUsed())
+		logrus.Info("Using config file: ", viper.ConfigFileUsed())
+	} else {
+		logrus.Error("config failed: ", err)
 	}
 
 	err := viper.Unmarshal(&config.C)
 	if err != nil {
-		logrus.Error("unable to decode into struct, ", err)
+		logrus.Error("unmarshal config file: ", err)
 	}
 }
