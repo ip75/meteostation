@@ -10,6 +10,7 @@ import (
 	"github.com/ip75/meteostation/config"
 	meteostation "github.com/ip75/meteostation/proto/api"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -20,7 +21,6 @@ type Storage struct {
 }
 
 func (s Storage) ComposeDSN() string {
-
 	pgHost, ok := os.LookupEnv("POSTGRES_HOST")
 	if !ok {
 		return config.C.PostgreSQL.DSN
@@ -42,11 +42,10 @@ func (s Storage) ComposeDSN() string {
 }
 
 func (s Storage) Init() error {
-
 	fmt.Fprintln(os.Stdout, "storage: connecting to PostgreSQL database...")
 	d, err := sqlx.Open("postgres", s.ComposeDSN())
 	if err != nil {
-		return fmt.Errorf("storage: PostgreSQL connection error: %s", err)
+		return fmt.Errorf("storage: PostgreSQL connection error: %w", err)
 	}
 	d.SetMaxOpenConns(config.C.PostgreSQL.MaxOpenConnections)
 	d.SetMaxIdleConns(config.C.PostgreSQL.MaxIdleConnections)
@@ -67,55 +66,52 @@ func (s Storage) Init() error {
 }
 
 func (s Storage) StoreSensorPoint(sensor SensorData) error {
-
 	tx, err := s.pg.Beginx()
 	if err != nil {
-		return fmt.Errorf("storage: Unable to open transaction: %s", err)
+		return fmt.Errorf("storage: Unable to open transaction: %w", err)
 	}
 
 	_, err = tx.NamedExec("INSERT INTO sensor_data (date, temperature, pressure) VALUES (:date, :temperature, :pressure)", sensor)
 
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("storage: transaction rollback error: %s", rbErr)
+			return fmt.Errorf("storage: transaction rollback error: %w", rbErr)
 		}
 
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("storage: transaction commit error: %s", err)
+		return fmt.Errorf("storage: transaction commit error: %w", err)
 	}
 	return nil
-
 }
 
 func (s Storage) StoreSensorData(data []SensorDataDatabase) error {
-
 	if data == nil {
 		return errors.New("storage: No data to store")
 	}
 
 	tx, err := s.pg.Beginx()
 	if err != nil {
-		return fmt.Errorf("storage: Unable to open transaction: %s", err)
+		return fmt.Errorf("storage: Unable to open transaction: %w", err)
 	}
 
 	_, err = tx.NamedExec("INSERT INTO meteodata (dt, temperature, pressure) VALUES (:dt, :temperature, :pressure)", data)
 
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("storage: transaction rollback error: %s", rbErr)
+			return fmt.Errorf("storage: transaction rollback error: %w", rbErr)
 		}
 
-		return err
+		return fmt.Errorf("storage: insert meteodata error: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("storage: transaction commit error: %s", err)
+		return fmt.Errorf("storage: transaction commit error: %w", err)
 	}
 
-	fmt.Printf("%s : storage : dump %d records to database\n", time.Now(), len(data))
+	logrus.Infof("%s : storage : dump %d records to database", time.Now(), len(data))
 
 	return nil
 }
@@ -128,12 +124,11 @@ type MeteoDataEntity struct {
 }
 
 func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoData, error) {
-
 	var data []MeteoDataEntity
 
-	var from time.Time = time.Now().Add(time.Hour * 24 * -31)
-	var to time.Time = time.Now()
-	var granularity int64 = 1
+	from := time.Now().Add(time.Hour * 24 * -31)
+	to := time.Now()
+	granularity := int64(1)
 
 	if filter != nil {
 		from = filter.From.AsTime()
@@ -156,10 +151,10 @@ func (s Storage) GetMeteoData(filter *meteostation.Filter) (*meteostation.MeteoD
 		granularity,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get meteodata:%w", err)
 	}
 
-	var sd []*meteostation.SensorData
+	sd := make([]*meteostation.SensorData, 0, len(data))
 	for _, d := range data {
 		sd = append(sd, &meteostation.SensorData{
 			Temperature: d.Temperature,

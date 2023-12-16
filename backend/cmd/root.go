@@ -26,6 +26,7 @@ import (
 	"github.com/ip75/meteostation/config"
 	"github.com/ip75/meteostation/server"
 	"github.com/ip75/meteostation/storage"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -75,7 +76,7 @@ to quickly create a Cobra application.`,
 		go func() {
 			for {
 				if err := storage.PG.StoreSensorData(<-sdChannel); err != nil {
-					log.Printf("store sensor data error: %v", err)
+					logrus.Error("store sensor data error: ", err)
 				}
 			}
 		}()
@@ -86,9 +87,9 @@ to quickly create a Cobra application.`,
 			select {
 			case sdChannel <- storage.RDB.Pull():
 			case <-term:
-				log.Print("Got signal SIGTERM and exit", term)
+				logrus.Info("Got signal SIGTERM and exit", term)
 				os.Exit(0)
-				//default:
+				// default:
 				//	log.Print("waiting for data from channel...")
 			}
 		}
@@ -117,7 +118,6 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-
 	viper.SetConfigType("json")
 
 	if configFile != "" {
@@ -139,11 +139,11 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file: ", viper.ConfigFileUsed())
+		logrus.Error("Using config file: ", viper.ConfigFileUsed())
 	}
 
 	err := viper.Unmarshal(&config.C)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "unable to decode into struct, ", err)
+		logrus.Error("unable to decode into struct, ", err)
 	}
 }

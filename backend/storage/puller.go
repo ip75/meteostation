@@ -9,12 +9,13 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/ip75/meteostation/config"
+	"github.com/sirupsen/logrus"
 )
 
 var RDB RClient
 
 type RClient struct {
-	Db *redis.Client
+	*redis.Client
 }
 
 type SensorData struct {
@@ -30,7 +31,6 @@ type SensorDataDatabase struct {
 }
 
 func (r RClient) Init() {
-
 	fmt.Fprintln(os.Stdout, "storage: connect to Redis", config.C.Redis.URL)
 
 	client := redis.NewClient(&redis.Options{
@@ -44,39 +44,38 @@ func (r RClient) Init() {
 
 // pull data from redis queue with data from sensor
 func (r RClient) PullPoint() SensorData {
-	data, err := r.Db.RPop(context.Background(), config.C.Redis.Queue).Result()
-
+	data, err := r.RPop(context.Background(), config.C.Redis.Queue).Result()
 	if err != nil {
+		logrus.Error("RPop error:", err)
 		panic(err)
 	}
 
 	var sensor SensorData
-	json.Unmarshal([]byte(data), &sensor)
+	if err := json.Unmarshal([]byte(data), &sensor); err != nil {
+		logrus.Error("unmarshal sensor data failed:", err)
+	}
 
 	return sensor
 }
 
 // pull data from redis queue with data from sensor
 func (r RClient) Pull() []SensorDataDatabase {
-
 	var result []SensorDataDatabase
 
 	for i := 0; i < config.C.General.PoolSize; i++ {
-
-		data, err := r.Db.BRPop(context.Background(), 0, config.C.Redis.Queue).Result()
-
+		data, err := r.BRPop(context.Background(), 0, config.C.Redis.Queue).Result()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "BRPop error:", err)
+			logrus.Error("BRPop error:", err)
 		}
 
 		if len(data) < 2 {
-			fmt.Fprintln(os.Stderr, "BRPop error: no data from redis")
+			logrus.Errorf("BRPop error: no data from redis")
 			return nil
 		}
 
 		point := SensorData{}
 		if err = json.Unmarshal([]byte(data[1]), &point); err != nil {
-			fmt.Fprintln(os.Stderr, "unable to unmarshal:", err)
+			logrus.Errorf("unable to unmarshal: %s", err)
 		}
 
 		// This is not a timestamp this is clock from start of device.
@@ -88,7 +87,7 @@ func (r RClient) Pull() []SensorDataDatabase {
 		})
 	}
 
-	fmt.Printf("storage: pull %d records from redis\n", len(result))
+	logrus.Infof("storage: pull %d records from redis\n", len(result))
 
 	return result
 }

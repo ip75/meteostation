@@ -3,20 +3,26 @@ FROM golang:latest AS develop
 ENV PROJECT_PATH=/meteostation
 
 RUN mkdir -p $PROJECT_PATH
-COPY . $PROJECT_PATH
+COPY ./backend $PROJECT_PATH
+# COPY ui $PROJECT_PATH
 
 # build backend
 WORKDIR $PROJECT_PATH/backend
+RUN apt-get update
+RUN apt-get install -y protobuf-compiler
+RUN git submodule update
+RUN make install
+RUN make proto
 RUN go build -buildvcs=false
 
 # build frontend
-WORKDIR $PROJECT_PATH/ui/meteostation
+# WORKDIR $PROJECT_PATH/ui/meteostation
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn
-RUN yarn
-RUN yarn build
+# RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+# RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+# RUN apt-get update && apt-get install -y yarn
+# RUN yarn
+# RUN yarn build
 
 WORKDIR $PROJECT_PATH
 
@@ -27,7 +33,7 @@ ENV PROJECT_PATH=/meteostation
 COPY --from=develop $PROJECT_PATH/backend/meteostation $PROJECT_PATH/meteostation
 COPY --from=develop $PROJECT_PATH/backend/storage/migrations/* $PROJECT_PATH/storage/migrations/
 COPY --from=develop $PROJECT_PATH/backend/.meteostation.json /etc/.meteostation.json
-COPY --from=develop $PROJECT_PATH/ui/meteostation/dist $PROJECT_PATH/www/static
+# COPY --from=develop $PROJECT_PATH/ui/meteostation/dist $PROJECT_PATH/www/static
 
 RUN apk add libc6-compat
 

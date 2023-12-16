@@ -12,7 +12,6 @@ services:
       POSTGRES_PASSWORD: meteostation
       PGDATA: /postgres/data
     volumes:
-#      - ./data/postgres:/postgres/data
       - pgdata:/postgres/data
     
   meteostation:
@@ -35,6 +34,7 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile
+
   redis:
     image: redis:alpine
     container_name: redis
@@ -42,15 +42,11 @@ services:
     ports:
       - 6379:6379
     volumes:
-#      - ./data/redis:/data:rw
-      - rdata:/data:rw
+      - ./redis-data:/data:rw
     deploy:
-#      replicas: 2
-#      update_config:
-#        parallelism: 2
-#        delay: 10s
       restart_policy:
         condition: on-failure
+
   grafana:
     image: grafana/grafana-enterprise
     container_name: grafana
