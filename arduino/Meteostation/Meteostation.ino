@@ -244,6 +244,10 @@ typedef struct {
 
     auto list_length = gRedis->lpush(REDIS_QUEUE, jsonStr.c_str());
 
+    if (list_length != 1) {
+       Serial.printf("reconnect to redis service, because error of LPUSH command: %x\n", list_length);
+       reconnectRedis();
+    }
     Serial.printf("Push sensor values to %s list in redis storage: %d\n", REDIS_QUEUE, list_length);
 
     doc.clear();
